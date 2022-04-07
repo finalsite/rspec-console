@@ -53,8 +53,5 @@ module RSpecConsole
   before_run { FactoryBot.reload if defined?(FactoryBot) }
 
   # Clear Faker gem unique
-  before_run { Faker::Name.unique.clear }
-  before_run { Faker::Lorem.unique.clear }
-  before_run { Faker::Number.unique.clear }
-  before_run { Faker::Internet.unique.clear }
+  before_run { Faker::UniqueGenerator.clear }
 end
