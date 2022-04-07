@@ -26,15 +26,10 @@ module RSpecConsole
 
   # Emit warning when reload cannot be called, or call reload!
   before_run do
-    class String
-      def red
-        "\033[31m#{self}\033[0m"
-      end
-    end
     if defined?(Rails)
       if Rails.application.config.cache_classes
         STDERR.puts <<-MSG.gsub(/^ {10}/, '')
-          #{"[ WARNING ]".red }
+          \033[31m[ WARNING ]\033[0m
           Rails's cache_classes must be turned off.
           Turn it off in config/environments/test.rb:
 
@@ -45,12 +40,18 @@ module RSpecConsole
           Otherwise, code relading does not work.
         MSG
       else
-        ActionDispatch::Reloader.cleanup!
-        ActionDispatch::Reloader.prepare!
+        Rails.application.reloader.reload!
       end
     end
   end
 
   # Reloading FactoryGirl if necessary
   before_run { FactoryGirl.reload if defined?(FactoryGirl) }
+
+  # This is needed to avoid problem explained at
+  # https://github.com/thoughtbot/factory_bot/blob/master/GETTING_STARTED.md#rails-preloaders-and-rspec
+  before_run { FactoryBot.reload if defined?(FactoryBot) }
+
+  # Clear Faker gem unique
+  before_run { Faker::UniqueGenerator.clear }
 end

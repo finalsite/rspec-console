@@ -47,7 +47,9 @@ class RSpecConsole::ConfigCache
       self.config_proxy.recorded_messages.each do |method, args, block|
         # reporter caches config.output_stream which is not good as it
         # prevents the runner to use a custom stdout.
-        next if method == :reporter
+        # Disable replaying some methods that rspec expects to only be only called per whole suite run
+        next if %i[reporter mock_with expect_with].include?(method)
+        next if method == :append_before && args == [:suite]
         config.send(method, *args, &block)
       end
     end
@@ -81,7 +83,7 @@ class RSpecConsole::ConfigCache
     when :v2
       self.root_shared_examples.each do |context, name_blocks|
         name_blocks.each do |name, block|
-          ::RSpec.world.shared_example_group_registry.add(context, name, &block)
+          ::RSpec.world.shared_example_group_registry.add(context, name, &block.definition)
         end
       end
     end
